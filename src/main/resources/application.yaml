@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: accountService
+  # Configuración de la base de datos MySQL para AccountService
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME}?useSSL=false
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  # Configuración JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
