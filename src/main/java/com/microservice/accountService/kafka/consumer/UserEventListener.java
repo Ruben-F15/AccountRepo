@@ -1,0 +1,34 @@
+package com.microservice.accountService.kafka.consumer;
+
+import com.microservice.accountService.kafka.event.UserCreatedEvent;
+import com.microservice.accountService.service.AccountService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class UserEventListener {
+
+    private final AccountService accountService;
+
+    @KafkaListener(topics = "user.created")
+    public void handleUserCreated(UserCreatedEvent event, @Header(value = "correlationalId", required = false ) String correlationalId) {
+
+        if (correlationalId != null) {
+            MDC.put("correlationalId", correlationalId);
+        }
+
+        log.info("Received UserCreated event {}", event);
+
+        try {
+            accountService.createAccount(event.userId());
+        } finally {
+            MDC.clear();
+        }
+    }
+}

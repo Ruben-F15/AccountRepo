@@ -12,3 +12,21 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  kafka:
+    #    bootstrap-servers: localhost:9092  #para local
+    bootstrap-servers: kafka:29092   # para docker
+    consumer:
+      group-id: accountGroup
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+logging:
+  pattern: # PARA EL CORRELATIONAL ID - LO MOSTRAMOS EN LOG
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{correlationId}] %-5level %logger - %msg%n"

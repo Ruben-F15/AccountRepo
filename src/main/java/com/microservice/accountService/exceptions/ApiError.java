@@ -1,4 +1,12 @@
 package com.microservice.accountService.exceptions;
 
-public class ApiError {
-}
+import java.time.Instant;
+
+public record ApiError(
+        Instant timestamp,
+        int status,
+        String error,
+        String message,
+        String path,
+        String code
+) {}
