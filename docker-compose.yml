@@ -1,0 +1,16 @@
+services:
+  account-service:
+    build: .
+    container_name: account-service
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8081:8080"
+    networks:
+      - microservices-net
+networks:
+  microservices-net:
+    external: true

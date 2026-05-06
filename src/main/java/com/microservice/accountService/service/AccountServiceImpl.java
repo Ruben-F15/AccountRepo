@@ -1,12 +1,12 @@
 package com.microservice.accountService.service;
 
 import com.microservice.accountService.domain.AccountDocument;
-import com.microservice.accountService.dto.AccountResponseDTO;
+
 import com.microservice.accountService.exceptions.AccountNotFoundException;
 import com.microservice.accountService.exceptions.AccountServiceException;
 import com.microservice.accountService.exceptions.InsufficientFundsException;
 import com.microservice.accountService.repository.AccountRepository;
-import lombok.AllArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,13 +107,13 @@ public class AccountServiceImpl implements AccountService {
 
     @Transactional
     @Override
-    public void creditAccount(String accountId, BigDecimal amount) throws Exception {
+    public void creditAccount(String accountId, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new AccountServiceException("La cantidad a ingresar debe ser mayor que 0");
         }
 
         AccountDocument account = accountRepository.findByUserId(accountId).orElseThrow(
-                () -> new AccountNotFoundException("No se han podido ingresar los fondos", accountId)
+                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido ingresar los fondos", accountId)
         );
 
         account.setAccountBalance(account.getAccountBalance().add(amount));
