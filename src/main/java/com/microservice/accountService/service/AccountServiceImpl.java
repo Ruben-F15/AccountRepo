@@ -25,6 +25,8 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void createAccount(String userId) {
+        System.out.println("creando cuenta corriente..... sout");
+        log.info("creando cuenta corriente..... ");
         if (accountRepository.existsByUserId(userId)) {
             log.info("Account already exists for userId {}", userId);
             return; // idempotencia, asegura que no existe y no se duplica.

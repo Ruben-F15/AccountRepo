@@ -3,8 +3,9 @@ services:
     build: .
     container_name: account-service
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
+      SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:3306/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true
+#      DB_HOST: ${DB_HOST}
+#      DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
     ports:

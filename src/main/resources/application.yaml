@@ -3,6 +3,7 @@ spring:
     name: accountService
   # Configuración de la base de datos MySQL para AccountService
   datasource:
+#    url: jdbc:mysql://localhost:3306/accounts_db?useSSL=false&allowPublicKeyRetrieval=true
     url: jdbc:mysql://localhost:3306/accounts_db?useSSL=false&allowPublicKeyRetrieval=true
     username: mysqladminuser
     password: mysqladminpass
@@ -26,6 +27,8 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.microservice.accountService.kafka.event.UserCreatedEvent
+        spring.json.use.type.headers: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
