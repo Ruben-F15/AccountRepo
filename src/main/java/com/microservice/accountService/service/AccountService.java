@@ -36,7 +36,7 @@ public interface AccountService {
      *      * 1. Transfiere los fondos reservados a la cuenta final.
      *      * 2. Resetear reservedBalance a cero (o a un valor normal) para indicar que la cuenta está limpia.
      *    Esta es la segunda llamada, ejecutada *solo* si la reserva fue exitosa.
-     * @param accountId El ID de la cuenta emisora.
+     * @param accountId El ID de la cuenta emisora a retirar fondos.
      * @param amount El monto a descontar.
      * @throws AccountNotFoundException si la cuenta no existe.
      */
@@ -50,9 +50,12 @@ public interface AccountService {
      *      * 2. Aumenta el availableBalance.
      *    Se llama SIEMPRE que el proceso falló después de la reserva.
      *    Esta es la llamada de compensación, ejecutada en el proceso de rollback.
-     * @param accountId El ID de la cuenta emisora.
+     * @param accountNumber numero de la cuenta a ingresar.
      * @param amount El monto a acreditar.
-     * @throws Exception si falla la compensación.
      */
-    void creditAccount(String accountId, BigDecimal amount) throws Exception;
+    AccountResponseDTO creditAccount(String accountNumber, BigDecimal amount);
+
+    AccountResponseDTO getAccountByUserID(String userId);
+
+    AccountResponseDTO closeAccountById(Long accountId);
 }

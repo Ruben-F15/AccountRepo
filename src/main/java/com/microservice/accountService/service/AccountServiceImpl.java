@@ -2,6 +2,7 @@ package com.microservice.accountService.service;
 
 import com.microservice.accountService.domain.AccountDocument;
 
+import com.microservice.accountService.dto.AccountResponseDTO;
 import com.microservice.accountService.exceptions.AccountNotFoundException;
 import com.microservice.accountService.exceptions.AccountServiceException;
 import com.microservice.accountService.exceptions.InsufficientFundsException;
@@ -25,10 +26,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void createAccount(String userId) {
-        System.out.println("creando cuenta corriente..... sout");
-        log.info("creando cuenta corriente..... ");
+        log.info("Creating account..... ");
+
         if (accountRepository.existsByUserId(userId)) {
-            log.info("Account already exists for userId {}", userId);
+            log.info("The user already has an account created for its id:  {}", userId);
             return; // idempotencia, asegura que no existe y no se duplica.
         }
 
@@ -107,20 +108,77 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
     }
 
+    /**
+     * Lógica de Ingreso del dinero transaccional.
+     */
     @Transactional
     @Override
-    public void creditAccount(String accountId, BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+    public AccountResponseDTO creditAccount(String accountNumber, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new AccountServiceException("La cantidad a ingresar debe ser mayor que 0");
         }
 
-        AccountDocument account = accountRepository.findByUserId(accountId).orElseThrow(
-                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido ingresar los fondos", accountId)
+        AccountDocument account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido ingresar los fondos en: ", accountNumber)
         );
 
         account.setAccountBalance(account.getAccountBalance().add(amount));
         account.setAvailableAmount(account.getAvailableAmount().add(amount));
 
         accountRepository.save(account);
+
+        return AccountResponseDTO.builder()
+                .id(account.getId())
+                .accountBalance(account.getAccountBalance())
+                .accountNumber(account.getAccountNumber())
+                .userId(account.getUserId())
+                .availableAmount(account.getAvailableAmount())
+                .currency(account.getCurrency())
+                .reservedAmount(account.getReservedAmount())
+                .status(account.getStatus())
+                .build();
     }
+
+
+    @Override
+    public AccountResponseDTO getAccountByUserID(String userId) {
+            AccountDocument accountDocument = accountRepository.findByUserId(userId).orElseThrow(
+                    ()-> new AccountNotFoundException("Account not found for user with id: ", userId)
+            );
+
+            return AccountResponseDTO.builder()
+                    .id(accountDocument.getId())
+                    .accountBalance(accountDocument.getAccountBalance())
+                    .accountNumber(accountDocument.getAccountNumber())
+                    .userId(accountDocument.getUserId())
+                    .availableAmount(accountDocument.getAvailableAmount())
+                    .currency(accountDocument.getCurrency())
+                    .reservedAmount(accountDocument.getReservedAmount())
+                    .status(accountDocument.getStatus())
+                    .build();
+    }
+
+
+    @Override
+    public AccountResponseDTO closeAccountById(Long accountId) {
+        AccountDocument accountDocument = accountRepository.findById(accountId).orElseThrow(
+                ()-> new AccountNotFoundException("Account not found for account id: ", accountId.toString())
+        );
+
+        accountDocument.setStatus("CLOSED");
+        accountRepository.save(accountDocument);
+
+        return AccountResponseDTO.builder()
+                .id(accountDocument.getId())
+                .accountBalance(accountDocument.getAccountBalance())
+                .accountNumber(accountDocument.getAccountNumber())
+                .userId(accountDocument.getUserId())
+                .availableAmount(accountDocument.getAvailableAmount())
+                .currency(accountDocument.getCurrency())
+                .reservedAmount(accountDocument.getReservedAmount())
+                .status(accountDocument.getStatus())
+                .build();
+    }
+
+
 }

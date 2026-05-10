@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Profile("!test")
 public class UserEventListener {
 
     private final AccountService accountService;
@@ -25,12 +24,10 @@ public class UserEventListener {
             MDC.put("correlationalId", correlationalId);
         }
 
-        log.info("Received UserCreated event {}", event);
+        log.info("Received UserCreated event for userId= {}", event.userId());
 
-        try {
-            accountService.createAccount(event.userId());
-        } finally {
-            MDC.clear();
-        }
+        accountService.createAccount(event.userId());
+
+        MDC.clear();
     }
 }
