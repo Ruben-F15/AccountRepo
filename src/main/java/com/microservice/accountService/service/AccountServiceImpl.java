@@ -3,17 +3,24 @@ package com.microservice.accountService.service;
 import com.microservice.accountService.domain.AccountDocument;
 
 import com.microservice.accountService.dto.AccountResponseDTO;
+import com.microservice.accountService.exceptions.AccessDeniedUserIdException;
 import com.microservice.accountService.exceptions.AccountNotFoundException;
 import com.microservice.accountService.exceptions.AccountServiceException;
 import com.microservice.accountService.exceptions.InsufficientFundsException;
+import com.microservice.accountService.mapper.AccountMapper;
 import com.microservice.accountService.repository.AccountRepository;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.net.Authenticator;
+import java.nio.file.AccessDeniedException;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
@@ -22,7 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
-
+    private final AccountMapper accountMapper;
 
     @Override
     public void createAccount(String userId) {
@@ -63,13 +70,22 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     @Override
     public boolean reserveFunds(String accountId, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
+        Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+        String userId = Objects.requireNonNull(authentication).getName();
+
+
+
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new AccountServiceException("La cantidad a transferir debe ser mayor que 0");
         }
 
-        AccountDocument account = accountRepository.findByUserId(accountId).orElseThrow(
-                () -> new AccountNotFoundException("No se han podido reservar los fondos", accountId)
+        AccountDocument account = accountRepository.findById(accountId).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada - No se han podido reservar los fondos en la cuenta con ID: ", accountId)
         );
+
+        if (!userId.equals(account.getUserId())) {
+            throw new AccessDeniedUserIdException(userId, account.getUserId());
+        }
 
         if (account.getAvailableAmount().compareTo(amount) < 0) {
             throw new InsufficientFundsException("No se puede completar la transferencia");
@@ -94,7 +110,7 @@ public class AccountServiceImpl implements AccountService {
             throw new AccountServiceException("La cantidad a transferir debe ser mayor que 0");
         }
 
-        AccountDocument account = accountRepository.findByUserId(accountId).orElseThrow(
+        AccountDocument account = accountRepository.findById(accountId).orElseThrow(
                 () -> new AccountNotFoundException("No se han podido reservar los fondos", accountId)
         );
 
@@ -127,57 +143,35 @@ public class AccountServiceImpl implements AccountService {
 
         accountRepository.save(account);
 
-        return AccountResponseDTO.builder()
-                .id(account.getId())
-                .accountBalance(account.getAccountBalance())
-                .accountNumber(account.getAccountNumber())
-                .userId(account.getUserId())
-                .availableAmount(account.getAvailableAmount())
-                .currency(account.getCurrency())
-                .reservedAmount(account.getReservedAmount())
-                .status(account.getStatus())
-                .build();
+        return accountMapper.toDTO(account);
     }
 
 
     @Override
     public AccountResponseDTO getAccountByUserID(String userId) {
-            AccountDocument accountDocument = accountRepository.findByUserId(userId).orElseThrow(
+            AccountDocument account = accountRepository.findByUserId(userId).orElseThrow(
                     ()-> new AccountNotFoundException("Account not found for user with id: ", userId)
             );
 
-            return AccountResponseDTO.builder()
-                    .id(accountDocument.getId())
-                    .accountBalance(accountDocument.getAccountBalance())
-                    .accountNumber(accountDocument.getAccountNumber())
-                    .userId(accountDocument.getUserId())
-                    .availableAmount(accountDocument.getAvailableAmount())
-                    .currency(accountDocument.getCurrency())
-                    .reservedAmount(accountDocument.getReservedAmount())
-                    .status(accountDocument.getStatus())
-                    .build();
+            return accountMapper.toDTO(account);
     }
 
-
+    @Transactional
     @Override
     public AccountResponseDTO closeAccountById(Long accountId) {
-        AccountDocument accountDocument = accountRepository.findById(accountId).orElseThrow(
+        AccountDocument account = accountRepository.findById(accountId).orElseThrow(
                 ()-> new AccountNotFoundException("Account not found for account id: ", accountId.toString())
         );
 
-        accountDocument.setStatus("CLOSED");
-        accountRepository.save(accountDocument);
+        if (account.getStatus().equals("CLOSED")) {
+            throw new AccountServiceException("Account already closed"
+            );
+        }
 
-        return AccountResponseDTO.builder()
-                .id(accountDocument.getId())
-                .accountBalance(accountDocument.getAccountBalance())
-                .accountNumber(accountDocument.getAccountNumber())
-                .userId(accountDocument.getUserId())
-                .availableAmount(accountDocument.getAvailableAmount())
-                .currency(accountDocument.getCurrency())
-                .reservedAmount(accountDocument.getReservedAmount())
-                .status(accountDocument.getStatus())
-                .build();
+        account.setStatus("CLOSED");
+        accountRepository.save(account);
+
+        return accountMapper.toDTO(account);
     }
 
 
