@@ -4,6 +4,7 @@ import com.microservice.accountService.dto.AccountResponseDTO;
 import com.microservice.accountService.exceptions.AccountNotFoundException;
 import com.microservice.accountService.exceptions.InsufficientFundsException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -28,6 +29,9 @@ public interface AccountService {
      * @throws AccountNotFoundException si no se encuentra la cuenta
      */
     boolean reserveFunds(String accountId, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException;
+
+    @Transactional
+    boolean ReleaseReserveFunds(String accountNumber, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException;
 
     /**
      * Finaliza la transferencia y descuenta permanentemente los fondos.
@@ -54,6 +58,9 @@ public interface AccountService {
      * @param amount El monto a acreditar.
      */
     AccountResponseDTO creditAccount(String accountNumber, BigDecimal amount);
+
+    @Transactional
+    AccountResponseDTO refundAccount(String accountNumber, BigDecimal amount);
 
     AccountResponseDTO getAccountByUserID(String userId);
 

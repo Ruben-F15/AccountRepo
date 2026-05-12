@@ -1,6 +1,7 @@
 package com.microservice.accountService.security.config;
 
-import com.microservice.accountService.security.jwt.JwtAuthenticatonFilter;
+import com.microservice.accountService.security.jwt.JwtAuthenticationFilter;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,20 +19,26 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticatonFilter jwtAuthenticatonFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @PostConstruct
+    public void init() {
+        System.out.println(" :::::::::::::::::::: SECURITY CONFIG LOADED");
+    }
 
     @Bean
-    public SecurityFilterChain springSecurityFilterChain(HttpSecurity http) throws Exception {
-
-        http.csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        System.out.println(" :::::::::::::::::::: SECURITY FILTER CHAIN CREATED");
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/accounts/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(
-                        jwtAuthenticatonFilter, UsernamePasswordAuthenticationFilter.class
+                        jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class
                 );
-        return  http.build();
+        return http.build();
     }
 }

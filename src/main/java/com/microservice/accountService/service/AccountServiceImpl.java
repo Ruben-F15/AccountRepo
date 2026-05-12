@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.net.Authenticator;
-import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
@@ -69,7 +67,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional
     @Override
-    public boolean reserveFunds(String accountId, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
+    public boolean reserveFunds(String accountNumber, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
         Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
         String userId = Objects.requireNonNull(authentication).getName();
 
@@ -79,8 +77,8 @@ public class AccountServiceImpl implements AccountService {
             throw new AccountServiceException("La cantidad a transferir debe ser mayor que 0");
         }
 
-        AccountDocument account = accountRepository.findById(accountId).orElseThrow(
-                () -> new AccountNotFoundException("Cuenta no encontrada - No se han podido reservar los fondos en la cuenta con ID: ", accountId)
+        AccountDocument account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada - No se han podido reservar los fondos en la cuenta: ", accountNumber)
         );
 
         if (!userId.equals(account.getUserId())) {
@@ -88,11 +86,40 @@ public class AccountServiceImpl implements AccountService {
         }
 
         if (account.getAvailableAmount().compareTo(amount) < 0) {
-            throw new InsufficientFundsException("No se puede completar la transferencia");
+            throw new InsufficientFundsException("No se puede completar la transferencia, no hay fondos suficientes");
         }
 
         account.setAvailableAmount(account.getAvailableAmount().subtract(amount));
         account.setReservedAmount(account.getReservedAmount().add(amount));
+
+        accountRepository.save(account);
+
+        return true;
+    }
+
+    @Transactional
+    @Override
+    public boolean ReleaseReserveFunds(String accountNumber, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
+        Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+        String userId = Objects.requireNonNull(authentication).getName();
+
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new AccountServiceException("La cantidad a transferir debe ser mayor que 0");
+        }
+
+        AccountDocument account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada - No se han podido reservar los fondos en la cuenta: ", accountNumber)
+        );
+
+        if (!userId.equals(account.getUserId())) {
+            throw new AccessDeniedUserIdException(userId, account.getUserId());
+        }
+
+        if (account.getReservedAmount().compareTo(amount) < 0) {
+            throw new InsufficientFundsException("No se puede completar la liberacion de la reserva, por valor superior al reservado.");
+        }
+
+        account.setReservedAmount(account.getReservedAmount().subtract(amount));
 
         accountRepository.save(account);
 
@@ -105,20 +132,19 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional
     @Override
-    public void debitAccount(String accountId, BigDecimal amount) throws AccountNotFoundException {
+    public void debitAccount(String accountNumber, BigDecimal amount) throws AccountNotFoundException {
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new AccountServiceException("La cantidad a transferir debe ser mayor que 0");
         }
 
-        AccountDocument account = accountRepository.findById(accountId).orElseThrow(
-                () -> new AccountNotFoundException("No se han podido reservar los fondos", accountId)
+        AccountDocument account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido reservar los fondos en: ", accountNumber)
         );
 
         if (account.getReservedAmount().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
             throw new InsufficientFundsException("No se puede completar la transferencia");
         }
 
-        account.setReservedAmount(account.getReservedAmount().subtract(amount));
         account.setAccountBalance(account.getAccountBalance().subtract(amount));
 
         accountRepository.save(account);
@@ -139,6 +165,28 @@ public class AccountServiceImpl implements AccountService {
         );
 
         account.setAccountBalance(account.getAccountBalance().add(amount));
+        account.setAvailableAmount(account.getAvailableAmount().add(amount));
+
+        accountRepository.save(account);
+
+        return accountMapper.toDTO(account);
+    }
+
+    /**
+     * Lógica de devolucion en caso de fallo.
+     */
+    @Transactional
+    @Override
+    public AccountResponseDTO refundAccount(String accountNumber, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new AccountServiceException("La cantidad a devolver debe ser mayor que 0");
+        }
+
+        AccountDocument account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido devolver los fondos en: ", accountNumber)
+        );
+
+        account.setReservedAmount(account.getAccountBalance().subtract(amount));
         account.setAvailableAmount(account.getAvailableAmount().add(amount));
 
         accountRepository.save(account);

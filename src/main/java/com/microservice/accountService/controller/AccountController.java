@@ -22,6 +22,7 @@ public class AccountController {
     public ResponseEntity<AccountResponseDTO> getAccountByUserId(@PathVariable String userId) {
         return ResponseEntity.ok(accountService.getAccountByUserID(userId));
     }
+
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @PostMapping("/{accountNumber}/deposit")
     public ResponseEntity<AccountResponseDTO> postCreditAccount(
@@ -30,5 +31,8 @@ public class AccountController {
         return  ResponseEntity.ok(accountService.creditAccount(accountNumber, creditAccountRequestDTO.amount()));
     }
 
-
+    @GetMapping("/hola")
+    public String hola() {
+        return "hola mundo desde account";
+    }
 }
