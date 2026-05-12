@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,8 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        System.out.println("::::::::::::::::::: do filter internal");
+    protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+
         final String authorizationHeader = request.getHeader("Authorization");
 
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -42,11 +43,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = authorizationHeader.substring(7);
 
         log.info(" :::::::::::::::::::::::::::::::::::::::::::::::: DO FILTER");
-        System.out.println(" :::::::::::::::::::::::::::::::::::::::::::::::: DO FILTER");
         if (jwtService.isTokenValid(jwt)) {
             log.info(":::::::::::::::::::::::::::::: TOKEN VALIDO");
+
             Claims claims = jwtService.extractAllClaims(jwt);
-            log.info("::::::::::::::::::::::::::: claims: " + claims.get("role").toString());
+            log.info("::::::::::::::::::::::::::: claims: {}", claims.get("role").toString());
 
             String userId = claims.getSubject();
 
@@ -65,11 +66,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     roles.stream()
                             .map(SimpleGrantedAuthority::new)
                             .toList();
-//            List<String> roles = (List<String>) claims.get("role");
-//            List<GrantedAuthority> authorities =
-//                    roles.stream()
-//                            .map(role -> (GrantedAuthority) new SimpleGrantedAuthority(role))
-//                            .toList();
 
             System.out.println("Authorities: " + authorities);
             UsernamePasswordAuthenticationToken authentication =
