@@ -29,6 +29,9 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+server:
+  port: 8080
+
 jwt:
   secret: ${SECRET_KEY}
 
