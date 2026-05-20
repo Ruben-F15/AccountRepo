@@ -18,16 +18,18 @@ public class UserEventListener {
     private final AccountService accountService;
 
     @KafkaListener(topics = "user.created")
-    public void handleUserCreated(UserCreatedEvent event, @Header(value = "correlationalId", required = false ) String correlationalId) {
+    public void handleUserCreated(UserCreatedEvent event, @Header(value = "correlationId", required = false ) String correlationId) {
+        try {
+            if (correlationId != null) {
+                MDC.put("correlationId", correlationId);
+            }
 
-        if (correlationalId != null) {
-            MDC.put("correlationalId", correlationalId);
+            log.info("Received UserCreated event for userId= {}", event.userId());
+
+            accountService.createAccount(event.userId());
+
+        } finally {
+            MDC.clear();
         }
-
-        log.info("Received UserCreated event for userId= {}", event.userId());
-
-        accountService.createAccount(event.userId());
-
-        MDC.clear();
     }
 }

@@ -63,22 +63,21 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * Ejecuta la Lógica de Negocio atómica contra la base de datos.
+     *
      * @Transactional es clave aquí.
      */
     @Transactional
     @Override
-    public boolean reserveFunds(String accountNumber, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
-        Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+    public boolean reserveFunds(Long accountId, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = Objects.requireNonNull(authentication).getName();
-
-
 
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new AccountServiceException("La cantidad a transferir debe ser mayor que 0");
         }
 
-        AccountDocument account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(
-                () -> new AccountNotFoundException("Cuenta no encontrada - No se han podido reservar los fondos en la cuenta: ", accountNumber)
+        AccountDocument account = accountRepository.findById(accountId).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada - No se han podido reservar los fondos de la cuenta: ", accountId.toString())
         );
 
         if (!userId.equals(account.getUserId())) {
@@ -100,7 +99,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     @Override
     public boolean ReleaseReserveFunds(String accountNumber, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
-        Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = Objects.requireNonNull(authentication).getName();
 
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
@@ -120,6 +119,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         account.setReservedAmount(account.getReservedAmount().subtract(amount));
+        account.setAvailableAmount(account.getAvailableAmount().add(amount));
 
         accountRepository.save(account);
 
@@ -146,7 +146,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         account.setAccountBalance(account.getAccountBalance().subtract(amount));
-
+        account.setReservedAmount(account.getReservedAmount().subtract(amount));
         accountRepository.save(account);
     }
 
@@ -186,7 +186,7 @@ public class AccountServiceImpl implements AccountService {
                 () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido devolver los fondos en: ", accountNumber)
         );
 
-        account.setReservedAmount(account.getAccountBalance().subtract(amount));
+        account.setReservedAmount(account.getReservedAmount().subtract(amount));
         account.setAvailableAmount(account.getAvailableAmount().add(amount));
 
         accountRepository.save(account);
@@ -196,19 +196,28 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public AccountResponseDTO getAccountByUserID(String userId) {
-            AccountDocument account = accountRepository.findByUserId(userId).orElseThrow(
-                    ()-> new AccountNotFoundException("Account not found for user with id: ", userId)
-            );
+    public AccountResponseDTO getAccountDTOByUserID(String userId) {
+        AccountDocument account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new AccountNotFoundException("Account not found for user with id: ", userId)
+        );
 
-            return accountMapper.toDTO(account);
+        return accountMapper.toDTO(account);
+    }
+
+    @Override
+    public AccountDocument getAccountByUserId(String userId) {
+        AccountDocument account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new AccountNotFoundException("Account not found for user with id: ", userId)
+        );
+
+        return account;
     }
 
     @Transactional
     @Override
     public AccountResponseDTO closeAccountById(Long accountId) {
         AccountDocument account = accountRepository.findById(accountId).orElseThrow(
-                ()-> new AccountNotFoundException("Account not found for account id: ", accountId.toString())
+                () -> new AccountNotFoundException("Account not found for account id: ", accountId.toString())
         );
 
         if (account.getStatus().equals("CLOSED")) {

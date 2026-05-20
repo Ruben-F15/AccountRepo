@@ -20,7 +20,7 @@ public class AccountController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/{userId}")
     public ResponseEntity<AccountResponseDTO> getAccountByUserId(@PathVariable String userId) {
-        return ResponseEntity.ok(accountService.getAccountByUserID(userId));
+        return ResponseEntity.ok(accountService.getAccountDTOByUserID(userId));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','USER')")

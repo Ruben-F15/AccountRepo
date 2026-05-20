@@ -1,5 +1,6 @@
 package com.microservice.accountService.service;
 
+import com.microservice.accountService.domain.AccountDocument;
 import com.microservice.accountService.dto.AccountResponseDTO;
 import com.microservice.accountService.exceptions.AccountNotFoundException;
 import com.microservice.accountService.exceptions.InsufficientFundsException;
@@ -22,13 +23,13 @@ public interface AccountService {
      *      * 1. Verifica si availableBalance >= amount.
      *      * 2. Si es cierto: availableBalance -= amount; reservedBalance += amount.
      *    Esta es la primera llamada antes de ejecutar la transferencia.
-     * @param accountId El ID de la cuenta emisora.
+     * @param sourceAccountId El ID de la cuenta emisora.
      * @param amount El monto a reservar.
      * @return true si la reserva fue exitosa.
      * @throws InsufficientFundsException si no hay fondos disponibles.
      * @throws AccountNotFoundException si no se encuentra la cuenta
      */
-    boolean reserveFunds(String accountId, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException;
+    boolean reserveFunds(Long sourceAccountId, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException;
 
     @Transactional
     boolean ReleaseReserveFunds(String accountNumber, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException;
@@ -62,7 +63,9 @@ public interface AccountService {
     @Transactional
     AccountResponseDTO refundAccount(String accountNumber, BigDecimal amount);
 
-    AccountResponseDTO getAccountByUserID(String userId);
+    AccountResponseDTO getAccountDTOByUserID(String userId);
+
+    AccountDocument getAccountByUserId(String userId);
 
     AccountResponseDTO closeAccountById(Long accountId);
 }
