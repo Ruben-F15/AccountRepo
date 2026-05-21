@@ -3,7 +3,6 @@ package com.microservice.accountService.service;
 import com.microservice.accountService.domain.AccountDocument;
 
 import com.microservice.accountService.dto.AccountResponseDTO;
-import com.microservice.accountService.exceptions.AccessDeniedUserIdException;
 import com.microservice.accountService.exceptions.AccountNotFoundException;
 import com.microservice.accountService.exceptions.AccountServiceException;
 import com.microservice.accountService.exceptions.InsufficientFundsException;
@@ -11,14 +10,11 @@ import com.microservice.accountService.mapper.AccountMapper;
 import com.microservice.accountService.repository.AccountRepository;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
@@ -68,21 +64,14 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional
     @Override
-    public boolean reserveFunds(Long accountId, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = Objects.requireNonNull(authentication).getName();
-
+    public void reserveFunds(String sourceUserId, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new AccountServiceException("La cantidad a transferir debe ser mayor que 0");
         }
 
-        AccountDocument account = accountRepository.findById(accountId).orElseThrow(
-                () -> new AccountNotFoundException("Cuenta no encontrada - No se han podido reservar los fondos de la cuenta: ", accountId.toString())
+        AccountDocument account = accountRepository.findByUserId(sourceUserId).orElseThrow(
+                () -> new AccountNotFoundException("Account not found for user with id: ", sourceUserId)
         );
-
-        if (!userId.equals(account.getUserId())) {
-            throw new AccessDeniedUserIdException(userId, account.getUserId());
-        }
 
         if (account.getAvailableAmount().compareTo(amount) < 0) {
             throw new InsufficientFundsException("No se puede completar la transferencia, no hay fondos suficientes");
@@ -92,15 +81,11 @@ public class AccountServiceImpl implements AccountService {
         account.setReservedAmount(account.getReservedAmount().add(amount));
 
         accountRepository.save(account);
-
-        return true;
     }
 
     @Transactional
     @Override
     public boolean ReleaseReserveFunds(String accountNumber, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = Objects.requireNonNull(authentication).getName();
 
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new AccountServiceException("La cantidad a transferir debe ser mayor que 0");
@@ -109,10 +94,6 @@ public class AccountServiceImpl implements AccountService {
         AccountDocument account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(
                 () -> new AccountNotFoundException("Cuenta no encontrada - No se han podido reservar los fondos en la cuenta: ", accountNumber)
         );
-
-        if (!userId.equals(account.getUserId())) {
-            throw new AccessDeniedUserIdException(userId, account.getUserId());
-        }
 
         if (account.getReservedAmount().compareTo(amount) < 0) {
             throw new InsufficientFundsException("No se puede completar la liberacion de la reserva, por valor superior al reservado.");
@@ -132,13 +113,13 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional
     @Override
-    public void debitAccount(String accountNumber, BigDecimal amount) throws AccountNotFoundException {
+    public void debitAccount(String userId, BigDecimal amount) throws AccountNotFoundException {
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new AccountServiceException("La cantidad a transferir debe ser mayor que 0");
         }
 
-        AccountDocument account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(
-                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido reservar los fondos en: ", accountNumber)
+        AccountDocument account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido debitar los fondos en: ", userId)
         );
 
         if (account.getReservedAmount().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
@@ -155,13 +136,13 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional
     @Override
-    public AccountResponseDTO creditAccount(String accountNumber, BigDecimal amount) {
+    public AccountResponseDTO creditAccount(String userId, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new AccountServiceException("La cantidad a ingresar debe ser mayor que 0");
         }
 
-        AccountDocument account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(
-                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido ingresar los fondos en: ", accountNumber)
+        AccountDocument account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido ingresar los fondos en: ", userId)
         );
 
         account.setAccountBalance(account.getAccountBalance().add(amount));
@@ -206,11 +187,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDocument getAccountByUserId(String userId) {
-        AccountDocument account = accountRepository.findByUserId(userId).orElseThrow(
+        return accountRepository.findByUserId(userId).orElseThrow(
                 () -> new AccountNotFoundException("Account not found for user with id: ", userId)
         );
-
-        return account;
     }
 
     @Transactional

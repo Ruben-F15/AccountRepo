@@ -1,5 +1,6 @@
 package com.microservice.accountService.kafka.producer;
 
+import com.microservice.accountService.kafka.event.FundsDebitedEvent;
 import com.microservice.accountService.kafka.event.FundsReservationFailedEvent;
 import com.microservice.accountService.kafka.event.FundsReservedEvent;
 import com.microservice.accountService.kafka.topics.KafkaTopics;
@@ -37,12 +38,28 @@ public class AccountEventProducer {
         String correlationId = MDC.get("correlationId");
 
         ProducerRecord<String, Object> record = new ProducerRecord<>(
-                KafkaTopics.TRANSFER_FUNDS_RESERVED_FAILED.getTopic(),
+                KafkaTopics.TRANSFER_FUNDS_RESERVATION_FAILED.getTopic(),
                 event.sourceUserId(),
                 event
         );
 
         if (correlationId != null) { // enviamos en header el correlationalId para tracking.
+            record.headers().add("correlationId", correlationId.getBytes());
+        }
+
+        kafkaTemplate.send(record);
+    }
+
+    public void sendFundsDebitedEvent(FundsDebitedEvent event) {
+        String correlationId = MDC.get("correlationId");
+
+        ProducerRecord<String, Object> record = new ProducerRecord<>(
+                KafkaTopics.TRANSFER_FUNDS_DEBITED.getTopic(),
+                event.sourceUserId(),
+                event
+        );
+
+        if (correlationId != null) {
             record.headers().add("correlationId", correlationId.getBytes());
         }
 
