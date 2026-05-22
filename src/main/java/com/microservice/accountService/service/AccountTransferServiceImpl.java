@@ -38,7 +38,7 @@ public class AccountTransferServiceImpl implements AccountTransferService {
                     EventErrors.INSUFFICENT_FUNDS.getError(),
                     event.sourceUserId()
             );
-
+            accountEventProducer.sendFundsReservationFailedEvent(fundsReservationFailedEvent);
         } catch (AccountNotFoundException ex) {
                     log.error("Account not found for user={}", event.sourceUserId(), ex);
             fundsReservationFailedEvent = new FundsReservationFailedEvent(
@@ -46,7 +46,6 @@ public class AccountTransferServiceImpl implements AccountTransferService {
                     EventErrors.ACCOUNT_NOT_FOUND.getError(),
                     event.sourceUserId()
             );
-        } finally {
             accountEventProducer.sendFundsReservationFailedEvent(fundsReservationFailedEvent);
         }
     }
@@ -61,5 +60,16 @@ public class AccountTransferServiceImpl implements AccountTransferService {
                 event.transactionId()
         );
         accountEventProducer.sendFundsDebitedEvent(fundsDebitedEvent);
+    }
+
+    @Override
+    public void handleTransferCreditRequest(TransferCreditRequestedEvent creditRequestedEvent) {
+        accountService.creditAccount(creditRequestedEvent.destinationUserId(), creditRequestedEvent.amount());
+
+        FundsCreditedEvent fundsCreditedEvent = new FundsCreditedEvent(
+                creditRequestedEvent.sourceUserId(),
+                creditRequestedEvent.transactionId()
+        );
+        accountEventProducer.sendFundsCreditedEvent(fundsCreditedEvent);
     }
 }

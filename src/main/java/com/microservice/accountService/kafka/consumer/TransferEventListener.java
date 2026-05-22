@@ -1,5 +1,6 @@
 package com.microservice.accountService.kafka.consumer;
 
+import com.microservice.accountService.kafka.event.TransferCreditRequestedEvent;
 import com.microservice.accountService.kafka.event.TransferDebitRequestedEvent;
 import com.microservice.accountService.kafka.event.TransferRequestedEvent;
 import com.microservice.accountService.service.AccountTransferService;
@@ -47,6 +48,21 @@ public class TransferEventListener {
         } finally {
             MDC.clear();
         }
+    }
 
+    @KafkaListener(topics = "transfer.credit.requested")
+    public void handleTransferCreditRequestedEvent(TransferCreditRequestedEvent creditRequestedEvent,
+                                                   @Header(value = "correlationId", required = false) String correlationId) {
+        try {
+            if (correlationId != null) {
+                MDC.put("correlationId", correlationId);
+            }
+
+            log.info("Received TransferCreditRequestedEvent event for userId= {}", creditRequestedEvent.sourceUserId());
+
+            accountTransferService.handleTransferCreditRequest(creditRequestedEvent);
+        } finally {
+            MDC.clear();
+        }
     }
 }

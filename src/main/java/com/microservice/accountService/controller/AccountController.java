@@ -24,11 +24,11 @@ public class AccountController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
-    @PostMapping("/{accountNumber}/deposit")
+    @PostMapping("/{userId}/deposit")
     public ResponseEntity<AccountResponseDTO> postCreditAccount(
-            @PathVariable String accountNumber,
+            @PathVariable String userId,
             @Valid @RequestBody CreditAccountRequestDTO creditAccountRequestDTO) {
-        return  ResponseEntity.ok(accountService.creditAccount(accountNumber, creditAccountRequestDTO.amount()));
+        return  ResponseEntity.ok(accountService.depositAccount(userId, creditAccountRequestDTO.amount()));
     }
 
     @GetMapping("/hola")

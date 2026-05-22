@@ -4,6 +4,8 @@ import com.microservice.accountService.domain.AccountDocument;
 import com.microservice.accountService.dto.AccountResponseDTO;
 import com.microservice.accountService.exceptions.AccountNotFoundException;
 import com.microservice.accountService.exceptions.InsufficientFundsException;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +60,7 @@ public interface AccountService {
      * @param userId numero de la cuenta a ingresar.
      * @param amount El monto a acreditar.
      */
-    AccountResponseDTO creditAccount(String userId, BigDecimal amount);
+    void creditAccount(String userId, BigDecimal amount);
 
     @Transactional
     AccountResponseDTO refundAccount(String userId, BigDecimal amount);
@@ -68,4 +70,6 @@ public interface AccountService {
     AccountDocument getAccountByUserId(String userId);
 
     AccountResponseDTO closeAccountById(Long accountId);
+
+    AccountResponseDTO depositAccount(String userId, @NotNull(message = "Amount cannot be null or empty.") @DecimalMin(value = "0.01", message = "Amount must be greater than 0.01") BigDecimal amount);
 }

@@ -23,11 +23,20 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
-        spring.json.value.default.type: com.microservice.accountService.kafka.event.UserCreatedEvent
-        spring.json.use.type.headers: false
+        spring.json.type.mapping: >
+            user-created-event:com.microservice.accountService.kafka.event.UserCreatedEvent,
+            transfer-requested-event:com.microservice.accountService.kafka.event.TransferRequestedEvent,
+            transfer-debit-requested-event:com.microservice.accountService.kafka.event.TransferDebitRequestedEvent,
+            transfer-credit-requested-event:com.microservice.accountService.kafka.event.TransferCreditRequestedEvent
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: >
+          funds-reserved-event:com.microservice.accountService.kafka.event.FundsReservedEvent,
+          funds-reservation-failed-event:com.microservice.accountService.kafka.event.FundsReservationFailedEvent,
+          funds-debited-event:com.microservice.accountService.kafka.event.FundsDebitedEvent,
+          funds-credited-event:com.microservice.accountService.kafka.event.FundsCreditedEvent
 
 server:
   port: 8080

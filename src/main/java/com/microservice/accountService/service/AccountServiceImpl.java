@@ -136,7 +136,24 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional
     @Override
-    public AccountResponseDTO creditAccount(String userId, BigDecimal amount) {
+    public void creditAccount(String userId, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new AccountServiceException("La cantidad a ingresar debe ser mayor que 0");
+        }
+
+        AccountDocument account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new AccountNotFoundException("Cuenta no encontrada. No se han podido ingresar los fondos en: ", userId)
+        );
+
+        account.setAccountBalance(account.getAccountBalance().add(amount));
+        account.setAvailableAmount(account.getAvailableAmount().add(amount));
+
+        accountRepository.save(account);
+    }
+
+    @Transactional
+    @Override
+    public AccountResponseDTO depositAccount(String userId, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new AccountServiceException("La cantidad a ingresar debe ser mayor que 0");
         }
@@ -209,6 +226,7 @@ public class AccountServiceImpl implements AccountService {
 
         return accountMapper.toDTO(account);
     }
+
 
 
 }
