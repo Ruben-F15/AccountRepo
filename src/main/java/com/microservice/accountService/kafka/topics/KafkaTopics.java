@@ -11,8 +11,10 @@ public enum KafkaTopics {
         TRANSFER_FUNDS_RESERVATION_FAILED("transfer.funds.reservation.failed"),
         TRANSFER_DEBIT_REQUESTED("transfer.debit.requested"),
         TRANSFER_FUNDS_DEBITED("transfer.funds.debited"),
+        TRANSFER_FUNDS_DEBIT_FAILED("transfer.funds.debit.failed"),
         TRANSFER_CREDIT_REQUESTED("transfer.credit.requested"),
         TRANSFER_FUNDS_CREDITED("transfer.funds.credited"),
+        TRANSFER_FUNDS_CREDIT_FAILED("transfer.funds.credit.failed"),
         TRANSFER_COMPLETED("transfer.completed"),
         TRANSFER_FAILED("transfer.failed"),
         TRANSFER_ROLLBACK_REQUESTED("transfer.rollback.requested");

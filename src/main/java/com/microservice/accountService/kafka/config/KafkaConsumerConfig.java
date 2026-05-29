@@ -1,5 +1,8 @@
 package com.microservice.accountService.kafka.config;
 
+import com.microservice.accountService.exceptions.AccountNotFoundException;
+import com.microservice.accountService.exceptions.InvalidAmountException;
+import com.microservice.accountService.exceptions.InsufficientFundsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,15 +49,12 @@ public class KafkaConsumerConfig {
 
         // aquí pondremos las posibles excepciones que sean irrecuperables de cara al evento.
         errorHandler.addNotRetryableExceptions(
-                IllegalArgumentException.class
+                IllegalArgumentException.class,
+                AccountNotFoundException.class,
+                InsufficientFundsException.class,
+                InvalidAmountException.class
         );
 
         return errorHandler;
     }
-
-
-
-
-
-
 }

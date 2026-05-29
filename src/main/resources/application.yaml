@@ -36,7 +36,9 @@ spring:
           funds-reserved-event:com.microservice.accountService.kafka.event.FundsReservedEvent,
           funds-reservation-failed-event:com.microservice.accountService.kafka.event.FundsReservationFailedEvent,
           funds-debited-event:com.microservice.accountService.kafka.event.FundsDebitedEvent,
-          funds-credited-event:com.microservice.accountService.kafka.event.FundsCreditedEvent
+          funds-debit-failed-event:com.microservice.accountService.kafka.event.FundsDebitFailedEvent,
+          funds-credited-event:com.microservice.accountService.kafka.event.FundsCreditedEvent,
+          funds-credit-failed-event:com.microservice.accountService.kafka.event.FundsCreditFailedEvent
 
 server:
   port: 8080

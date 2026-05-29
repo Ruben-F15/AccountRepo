@@ -1,40 +1,99 @@
 spring:
   application:
-    name: accountService
-  # Configuración de la base de datos MySQL para AccountService
-  datasource:
-    url: jdbc:mysql://localhost:3306/accounts_db?useSSL=false&allowPublicKeyRetrieval=true
-    username: mysqladminuser
-    password: mysqladminpass
+    name: accountService-test
 
-  # Configuración JPA/Hibernate
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: create-drop
+
 
   kafka:
-    #    bootstrap-servers: localhost:9092  #para local
-    bootstrap-servers: kafka:29092
+    bootstrap-servers: localhost:9092
+
     listener:
-      auto-startup: false
+      auto-startup: true
+
     consumer:
       group-id: accountGroup
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
       properties:
         spring.json.trusted.packages: "*"
-#        spring.json.use.type.headers: false
+
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
-
 jwt:
   secret: "my-super-secret-key-for-testing-which-is-long-enough-123456"
 
-
 logging:
-  pattern: # PARA EL CORRELATIONAL ID - LO MOSTRAMOS EN LOG
+  pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{correlationId}] %-5level %logger - %msg%n"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#spring:
+#  application:
+#    name: accountService
+#  # Configuración de la base de datos MySQL para AccountService
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/accounts_db?useSSL=false&allowPublicKeyRetrieval=true
+#    username: mysqladminuser
+#    password: mysqladminpass
+#
+#  # Configuración JPA/Hibernate
+#  jpa:
+#    hibernate:
+#      ddl-auto: create-drop
+#
+#  kafka:
+#    #    bootstrap-servers: localhost:9092  #para local
+#    bootstrap-servers: kafka:29092
+#    listener:
+#      auto-startup: false
+#    consumer:
+#      group-id: accountGroup
+#      auto-offset-reset: earliest
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+#      properties:
+#        spring.json.trusted.packages: "*"
+##        spring.json.use.type.headers: false
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+#
+#
+#jwt:
+#  secret: "my-super-secret-key-for-testing-which-is-long-enough-123456"
+#
+#
+#logging:
+#  pattern: # PARA EL CORRELATIONAL ID - LO MOSTRAMOS EN LOG
+#    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{correlationId}] %-5level %logger - %msg%n"

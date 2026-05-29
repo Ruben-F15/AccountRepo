@@ -4,6 +4,7 @@ import com.microservice.accountService.domain.AccountDocument;
 import com.microservice.accountService.dto.AccountResponseDTO;
 import com.microservice.accountService.exceptions.AccountNotFoundException;
 import com.microservice.accountService.exceptions.InsufficientFundsException;
+import com.microservice.accountService.exceptions.InvalidAmountException;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
@@ -26,15 +27,15 @@ public interface AccountService {
      * * 2. Si es cierto: availableBalance -= amount; reservedBalance += amount.
      * Esta es la primera llamada antes de ejecutar la transferencia.
      *
-     * @param sourceAccountId El ID de la cuenta emisora.
+     * @param sourceUserId El ID de user de la cuenta emisora.
      * @param amount          El monto a reservar.
      * @throws InsufficientFundsException si no hay fondos disponibles.
      * @throws AccountNotFoundException   si no se encuentra la cuenta
      */
-    void reserveFunds(String sourceAccountId, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException;
+    void reserveFunds(String sourceUserId, BigDecimal amount, String transactionId) throws InsufficientFundsException, AccountNotFoundException, InvalidAmountException;
 
     @Transactional
-    boolean ReleaseReserveFunds(String accountNumber, BigDecimal amount) throws InsufficientFundsException, AccountNotFoundException;
+    void releaseReserveFunds(String userId, BigDecimal amount, String transactionId) throws InvalidAmountException, AccountNotFoundException;
 
     /**
      * Finaliza la transferencia y descuenta permanentemente los fondos.
@@ -47,7 +48,7 @@ public interface AccountService {
      * @param amount El monto a descontar.
      * @throws AccountNotFoundException si la cuenta no existe.
      */
-    void debitAccount(String userId, BigDecimal amount) throws AccountNotFoundException;
+    void debitAccount(String userId, BigDecimal amount, String transactionId) throws AccountNotFoundException;
 
     /**
      * Devuelve los fondos en caso de que el proceso falle en medio de la transacción.
@@ -60,10 +61,10 @@ public interface AccountService {
      * @param userId numero de la cuenta a ingresar.
      * @param amount El monto a acreditar.
      */
-    void creditAccount(String userId, BigDecimal amount);
+    void creditAccount(String userId, BigDecimal amount, String transactionId);
 
     @Transactional
-    AccountResponseDTO refundAccount(String userId, BigDecimal amount);
+    void refundAccount(String userId, BigDecimal amount, String transactionId);
 
     AccountResponseDTO getAccountDTOByUserID(String userId);
 
@@ -72,4 +73,6 @@ public interface AccountService {
     AccountResponseDTO closeAccountById(Long accountId);
 
     AccountResponseDTO depositAccount(String userId, @NotNull(message = "Amount cannot be null or empty.") @DecimalMin(value = "0.01", message = "Amount must be greater than 0.01") BigDecimal amount);
+
+    void reverseCredit(String userId, BigDecimal amount, String transactionId);
 }
