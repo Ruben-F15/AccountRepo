@@ -1,17 +1,22 @@
 package com.microservice.accountService;
 
 import com.microservice.accountService.kafka.producer.AccountEventProducer;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.testcontainers.containers.MySQLContainer;
+
+import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+
+import javax.sql.DataSource;
 
 @Testcontainers
 @SpringBootTest
@@ -28,10 +33,27 @@ public class AccountServiceApplicationTest {
 
     @ServiceConnection
     @Container
-    static MySQLContainer<?> mysqlContainer = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("accounts_db")
+    static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0")
+            .withDatabaseName("accounts_db_test")
             .withUsername("test")
             .withPassword("test");
+
+    @AfterAll
+    static void tearDown() {
+        kafkaContainer.stop();
+    }
+
+    @Autowired
+    DataSource dataSource;
+
+    @Test
+    void debugDatasource() throws Exception {
+        System.out.println(
+                dataSource.getConnection()
+                        .getMetaData()
+                        .getURL()
+        );
+    }
 
     @Test
     void contextLoads() {

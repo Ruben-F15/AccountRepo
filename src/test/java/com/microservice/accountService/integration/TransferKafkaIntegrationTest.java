@@ -7,6 +7,7 @@ import com.microservice.accountService.kafka.event.TransferRequestedEvent;
 import com.microservice.accountService.kafka.producer.AccountEventProducer;
 import com.microservice.accountService.repository.AccountRepository;
 import com.microservice.accountService.repository.TransactionOperationRepository;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +23,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -29,7 +31,7 @@ import java.time.Instant;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
 @ActiveProfiles("test")
 public class TransferKafkaIntegrationTest {
@@ -42,9 +44,14 @@ public class TransferKafkaIntegrationTest {
     @ServiceConnection
     @Container
     static MySQLContainer mysqlContainer = new MySQLContainer("mysql:8.0")
-            .withDatabaseName("accounts_db")
+            .withDatabaseName("accounts_db_test")
             .withUsername("test")
             .withPassword("test");
+
+    @AfterAll
+    static void tearDown() {
+        kafkaContainer.stop();
+    }
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -57,6 +64,18 @@ public class TransferKafkaIntegrationTest {
 
     @Autowired
     private TransactionOperationRepository transactionOperationRepository;
+
+    @Autowired
+    DataSource dataSource;
+
+    @Test
+    void debugDatasource() throws Exception {
+        System.out.println(
+                dataSource.getConnection()
+                        .getMetaData()
+                        .getURL()
+        );
+    }
 
     @Test
     void shouldReserveFundsWhenTransferRequestedEventArrives() {

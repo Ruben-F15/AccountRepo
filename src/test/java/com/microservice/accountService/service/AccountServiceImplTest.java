@@ -5,7 +5,6 @@ import com.microservice.accountService.domain.AccountDocument;
 import com.microservice.accountService.domain.TransactionOperation;
 import com.microservice.accountService.domain.enums.TransactionOperationStatus;
 import com.microservice.accountService.exceptions.InsufficientFundsException;
-import com.microservice.accountService.mapper.AccountMapper;
 import com.microservice.accountService.repository.AccountRepository;
 import com.microservice.accountService.repository.TransactionOperationRepository;
 import org.junit.jupiter.api.Test;
@@ -31,9 +30,6 @@ public class AccountServiceImplTest {
 
     @Mock
     private TransactionOperationRepository transactionOperationRepository;
-
-    @Mock
-    private AccountMapper accountMapper;
 
     @InjectMocks
     private AccountServiceImpl accountService;
