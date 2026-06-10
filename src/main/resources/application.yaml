@@ -48,5 +48,5 @@ jwt:
   secret: ${SECRET_KEY}
 
 logging:
-  pattern: # PARA EL CORRELATIONAL ID - LO MOSTRAMOS EN LOG
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{correlationId}] %-5level %logger - %msg%n"
+  pattern: # PARA EL CORRELATIONAL ID - LO MOSTRAMOS EN LOG PARA UN SEGUIMIENTO MÁS EFICIENTE Y POSIBLE DEBUG, ETC ETC
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [CID:%X{correlationId}] %-5level %logger - %msg%n"
