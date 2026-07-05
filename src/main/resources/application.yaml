@@ -3,9 +3,9 @@ spring:
     name: accountService
   # Configuración de la base de datos MySQL para AccountService
   datasource:
-    url: jdbc:mysql://localhost:3306/accounts_db?useSSL=false&allowPublicKeyRetrieval=true
-    username: mysqladminuser
-    password: mysqladminpass
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   # Configuración JPA/Hibernate
   jpa:
@@ -64,3 +64,5 @@ jwt:
 logging:
   pattern: # PARA EL CORRELATIONAL ID - LO MOSTRAMOS EN LOG PARA UN SEGUIMIENTO MÁS EFICIENTE Y POSIBLE DEBUG, ETC ETC
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [CID:%X{correlationId}] %-5level %logger - %msg%n"
+
+

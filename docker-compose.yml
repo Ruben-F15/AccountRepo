@@ -1,16 +1,48 @@
 services:
+
+  account-mysql:
+    image: mysql:9.7
+    container_name: account-mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD_AS}
+      MYSQL_DATABASE: ${DB_NAME_AS}
+      MYSQL_USER: ${DB_USERNAME_AS}
+      MYSQL_PASSWORD: ${DB_PASSWORD_AS}
+    volumes:
+      - account-mysql:/var/lib/mysql
+    networks:
+      - microservices-net
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u${DB_USERNAME_AS}", "-p${DB_PASSWORD_AS}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+
+
   account-service:
     build: .
     container_name: account-service
+    depends_on:
+      account-mysql:
+        condition: service_healthy
+    restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:3306/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST_AS}:${DB_PORT_AS}/${DB_NAME_AS}?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME_AS}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD_AS}
       JWT_SECRET: ${SECRET_KEY}
     ports:
       - "8081:8080"
     networks:
       - microservices-net
+
+volumes:
+  account-mysql:
+
 networks:
   microservices-net:
     external: true

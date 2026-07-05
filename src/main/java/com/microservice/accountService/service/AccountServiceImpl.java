@@ -75,7 +75,6 @@ public class AccountServiceImpl implements AccountService {
                         transactionId,
                         TransactionOperationStatus.CREATED,
                         Instant.now())
-
                 )
         );
 
