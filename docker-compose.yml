@@ -21,8 +21,7 @@ services:
       timeout: 5s
       retries: 10
 
-
-
+  #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   account-service:
     build: .
     container_name: account-service
@@ -42,6 +41,7 @@ services:
 
 volumes:
   account-mysql:
+    name: account-mysql
 
 networks:
   microservices-net:
