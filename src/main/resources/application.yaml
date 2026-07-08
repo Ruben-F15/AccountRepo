@@ -3,9 +3,9 @@ spring:
     name: accountService
   # Configuración de la base de datos MySQL para AccountService
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://${DB_HOST_AS}:${DB_PORT_AS}/${DB_NAME_AS}?useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME_AS}
+    password: ${DB_PASSWORD_AS}
 
   # Configuración JPA/Hibernate
   jpa:
