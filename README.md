@@ -628,25 +628,4 @@ El servicio continúa evolucionando junto con el resto de la plataforma como par
 
 ---
 
-## Documentación general
-
-| Documento | Descripción |
-|-----------|-------------|
-| [README.md](README.md) | Visión general de la plataforma. |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitectura, principios de diseño y decisiones técnicas. |
-| [EVENTS.md](EVENTS.md) | Comunicación mediante eventos, Kafka y patrón Saga. |
-| [SECURITY.md](SECURITY.md) | Autenticación, autorización y seguridad con JWT. |
-
-
-## Microservicios
-
-| Servicio | Documentación |
-|----------|---------------|
-| API Gateway | [APIGATEWAY](APIGATEWAY.md) |
-| User Authentication Service | [USERAUTHSERVICE](USERAUTHSERVICE.md) |
-| Account Service | [ACCOUNTSERVICE](ACCOUNTSERVICE.md) |
-| Transfer Service | [TRANSFERSERVICE](TRANSFERSERVICE.md) |
-| Infrastructure | [INFRASTRUCTURE](INFRASTRUCTURE.md) |
-
-
-Para comprender el flujo completo de una transferencia distribuida se recomienda consultar también la documentación del **Transfer Service**, responsable de la orquestación de la Saga.
+Para comprender el flujo completo de una transferencia distribuida se recomienda consultar también la documentación del **Transfer Service**, responsable de la orquestación de la Saga, Architecture y Events.
